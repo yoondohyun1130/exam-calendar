@@ -556,6 +556,17 @@
         <input class="fi" id="f-end2" type="date">
       </div>
     </div>
+    <!-- 결과발표 날짜 (필기/실기 선택 시 표시) -->
+    <div class="fg" id="result-fg" style="display:none">
+      <label style="display:flex;align-items:center;gap:6px;">
+        결과발표 날짜
+        <span style="font-size:9px;color:var(--text-muted);font-weight:400;text-transform:none;letter-spacing:0">(선택) 입력하면 자동으로 달력에 추가돼요</span>
+      </label>
+      <div class="date-row">
+        <input class="fi" id="f-result-start" type="date" placeholder="시작일">
+        <input class="fi" id="f-result-end" type="date" placeholder="종료일">
+      </div>
+    </div>
     <div class="fg"><label>장소 / 지역</label><input class="fi" id="f-place" placeholder="예: 서울, 부산"></div>
     <div class="fg"><label>시험 회차</label><input class="fi" id="f-round" placeholder="예: 1회차, 2회차"></div>
     <div class="fg"><label>메모</label><input class="fi" id="f-memo" placeholder="추가 메모"></div>
@@ -737,7 +748,14 @@ function moveTip(e){ const t=document.getElementById('tip'); let x=e.clientX+12,
 function hideTip(){ document.getElementById('tip').classList.remove('show'); document.querySelectorAll('.bar').forEach(b=>b.classList.remove('hi','dim')); }
 
 // MODAL
-function catChange(){ document.getElementById('sub-fg').style.display=+document.getElementById('f-cat').value===0?'block':'none'; updateSubUI(); }
+function catChange(){
+  const cat = +document.getElementById('f-cat').value;
+  document.getElementById('sub-fg').style.display = cat===0 ? 'block' : 'none';
+  // 필기(1) 또는 실기(2) 선택 시 결과발표 칸 표시
+  document.getElementById('result-fg').style.display = (cat===1||cat===2) ? 'block' : 'none';
+  if(cat!==1&&cat!==2){ document.getElementById('f-result-start').value=''; document.getElementById('f-result-end').value=''; }
+  updateSubUI();
+}
 function setSub(s){ curSub=s; ['w','p','b'].forEach(k=>document.getElementById('sb-'+k).classList.toggle('active',k===s)); updateSubUI(); }
 function updateSubUI(){ const both=curSub==='b'&&+document.getElementById('f-cat').value===0; document.getElementById('date-fg-p').style.display=both?'block':'none'; document.getElementById('date-lbl-w').textContent=both?'필기 신청기간':'날짜 범위'; }
 function updDatalist(){ document.getElementById('f-names').innerHTML=[...new Set(evs.map(e=>e.name))].map(n=>`<option value="${n}">`).join(''); }
@@ -746,6 +764,7 @@ function openAdd(){
   ['f-name','f-place','f-round','f-memo'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('f-cat').value='0'; document.getElementById('f-start').value=''; document.getElementById('f-end').value='';
   document.getElementById('f-start2').value=''; document.getElementById('f-end2').value='';
+  document.getElementById('f-result-start').value=''; document.getElementById('f-result-end').value='';
   curSub='w'; setSub('w'); catChange(); updDatalist(); document.getElementById('modal-ov').classList.add('open');
 }
 function openEdit(id){
@@ -757,6 +776,10 @@ function openEdit(id){
   curSub=ev.sub||'w'; setSub(curSub); catChange();
   if(ev.linkedId){ const lk=evs.find(e=>e.id===ev.linkedId); document.getElementById('f-start2').value=lk?.start||''; document.getElementById('f-end2').value=lk?.end||''; }
   else{ document.getElementById('f-start2').value=''; document.getElementById('f-end2').value=''; }
+  // 결과발표 연결 이벤트 불러오기
+  const resultEv = evs.find(e=>e.resultLinkedId===ev.id||e.id===ev.resultId);
+  document.getElementById('f-result-start').value = resultEv?.start||'';
+  document.getElementById('f-result-end').value   = resultEv?.end||'';
   updDatalist(); document.getElementById('modal-ov').classList.add('open');
 }
 function closeModal(){ document.getElementById('modal-ov').classList.remove('open'); }
@@ -769,19 +792,47 @@ async function saveEv(){
   if(start>end){ toast('⚠️','종료일이 시작일보다 앞설 수 없어요'); return; }
   const isBoth=cat===0&&curSub==='b';
   if(isBoth&&(!start2||!end2)){ toast('⚠️','실기 신청기간도 입력해주세요'); return; }
+  const resultStart = document.getElementById('f-result-start').value;
+  const resultEnd   = document.getElementById('f-result-end').value;
+
   if(isBoth){
     if(editId!==null){ const ex=evs.find(e=>e.id===editId); const lId=ex?.linkedId; evs=evs.filter(e=>e.id!==editId&&e.id!==lId); const id2=lId||Date.now()+1; evs.push({id:editId,name,cat,sub:'w',start,end,place,round,memo,linkedId:id2}); evs.push({id:id2,name,cat,sub:'p',start:start2,end:end2,place,round,memo,linkedId:editId}); }
     else{ const id1=Date.now(),id2=id1+1; evs.push({id:id1,name,cat,sub:'w',start,end,place,round,memo,linkedId:id2}); evs.push({id:id2,name,cat,sub:'p',start:start2,end:end2,place,round,memo,linkedId:id1}); }
   }else{
     const obj={name,cat,start,end,place,round,memo}; if(cat===0) obj.sub=curSub;
-    if(editId!==null){ const i=evs.findIndex(e=>e.id===editId); if(i!==-1) evs[i]={id:editId,...obj}; }else evs.push({id:Date.now(),...obj});
+    if(editId!==null){
+      // 기존 결과발표 연결 이벤트 삭제 후 재생성
+      const oldEv = evs.find(e=>e.id===editId);
+      if(oldEv?.resultId) evs = evs.filter(e=>e.id!==oldEv.resultId);
+      const i=evs.findIndex(e=>e.id===editId); if(i!==-1) evs[i]={id:editId,...obj};
+    } else {
+      evs.push({id:Date.now(),...obj});
+    }
+  }
+
+  // 결과발표 날짜 입력된 경우 자동 이벤트 생성 (필기=1, 실기=2)
+  if((cat===1||cat===2) && resultStart) {
+    const rEnd = resultEnd || resultStart;
+    const mainId = editId !== null ? editId : evs[evs.length-1].id;
+    // 기존 연결된 결과발표 이벤트 삭제
+    evs = evs.filter(e => e.resultLinkedId !== mainId);
+    const rId = Date.now() + 99;
+    evs.push({id:rId, name, cat:5, start:resultStart, end:rEnd, place, round, memo:'결과발표', resultLinkedId:mainId});
+    // 메인 이벤트에 resultId 저장
+    const mi = evs.findIndex(e=>e.id===mainId);
+    if(mi!==-1) evs[mi].resultId = rId;
+  } else if(cat===1||cat===2) {
+    // 결과발표 칸 비웠으면 기존 연결 결과발표 삭제
+    const mainId = editId !== null ? editId : evs[evs.length-1].id;
+    const oldEv = evs.find(e=>e.id===mainId);
+    if(oldEv?.resultId) evs = evs.filter(e=>e.id!==oldEv.resultId);
   }
   closeModal(); renderCal(); await saveEvs(); toast('✓',editId?'수정되었습니다':'일정이 추가되었습니다');
 }
 async function delEv(){
   if(editId===null) return; if(!confirm('이 일정을 삭제할까요?')) return;
-  const ev=evs.find(e=>e.id===editId); const lId=ev?.linkedId;
-  evs=evs.filter(e=>e.id!==editId&&e.id!==lId);
+  const ev=evs.find(e=>e.id===editId); const lId=ev?.linkedId; const rId=ev?.resultId;
+  evs=evs.filter(e=>e.id!==editId&&e.id!==lId&&e.id!==rId);
   closeModal(); renderCal(); await saveEvs(); toast('🗑','삭제되었습니다');
 }
 
