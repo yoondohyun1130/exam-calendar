@@ -17,6 +17,8 @@
     --text: #f0f0f8;
     --text-sub: #9898b8;
     --text-muted: #55556a;
+    --hdr-bg: rgba(12,12,16,0.9);
+    --shadow: 0 16px 48px rgba(0,0,0,0.6);
 
     --c1: #4d8ff5;
     --c2: #00c9c9;
@@ -29,6 +31,52 @@
     --radius: 12px;
     --ease: cubic-bezier(0.4,0,0.2,1);
   }
+
+  /* ── LIGHT MODE ── */
+  body.light {
+    --bg: #f4f5f8;
+    --surface: #ffffff;
+    --surface2: #f0f1f5;
+    --surface3: #e4e6ed;
+    --border: #0000000e;
+    --border2: #00000018;
+    --text: #1a1a2e;
+    --text-sub: #5a5a7a;
+    --text-muted: #9898aa;
+    --hdr-bg: rgba(244,245,248,0.92);
+    --shadow: 0 16px 48px rgba(0,0,0,0.12);
+  }
+  body.light .sync-dot.ok { background: #16a34a; box-shadow: 0 0 6px #16a34a60; }
+  body.light .day-n.today-n { box-shadow: 0 2px 8px #4d8ff530; }
+  body.light .cell.today { background: #4d8ff50a; border-color: #4d8ff528; }
+  body.light .hdr { border-bottom-color: #0000001a; }
+  body.light .cal-panel { border-right-color: #0000001a; }
+  body.light .memo-panel { background: #ffffff; }
+  body.light .modal { background: #ffffff; }
+  body.light .fi, body.light .fs { background: #f4f5f8; border-color: #0000001a; color: var(--text); }
+  body.light .pkey { background: #f0f1f5; border-color: #0000001a; }
+  body.light .pkey:hover { background: #e4e6ed; }
+  body.light .ym-popup { box-shadow: 0 12px 36px rgba(0,0,0,0.15); }
+  body.light #tip { box-shadow: 0 8px 28px rgba(0,0,0,0.15); }
+  body.light #toast { box-shadow: 0 4px 18px rgba(0,0,0,0.12); }
+
+  /* ── THEME TOGGLE ── */
+  .theme-toggle {
+    width: 36px; height: 20px; border-radius: 100px;
+    background: var(--surface2); border: 1px solid var(--border2);
+    cursor: pointer; position: relative; transition: background 0.3s;
+    flex-shrink: 0;
+  }
+  .theme-toggle::after {
+    content: ''; position: absolute;
+    width: 14px; height: 14px; border-radius: 50%;
+    top: 2px; left: 2px;
+    background: var(--text-muted);
+    transition: all 0.25s var(--ease);
+  }
+  body.light .theme-toggle { background: #4d8ff520; border-color: #4d8ff540; }
+  body.light .theme-toggle::after { transform: translateX(16px); background: var(--c1); }
+  .theme-icon { font-size: 13px; line-height: 1; }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -89,7 +137,7 @@
     display: flex; align-items: center; justify-content: space-between;
     padding: 0 24px; height: 56px;
     border-bottom: 1px solid var(--border);
-    background: rgba(12,12,16,0.9);
+    background: var(--hdr-bg);
     backdrop-filter: blur(20px);
     flex-shrink: 0; z-index: 200;
   }
@@ -172,7 +220,7 @@
     z-index: 500; background: var(--surface2);
     border: 1px solid var(--border2); border-radius: 14px;
     padding: 14px; width: 240px;
-    box-shadow: 0 16px 48px rgba(0,0,0,0.6),0 0 0 1px var(--border);
+    box-shadow: var(--shadow),0 0 0 1px var(--border);
     display: none;
   }
   .ym-popup.show { display: block; animation: fadeUp 0.18s var(--ease); }
@@ -412,6 +460,9 @@
         <span id="slbl">동기화됨</span>
       </div>
       <button class="btn btn-ghost" onclick="manualSync()" style="padding:6px 10px;font-size:12px;">↻</button>
+      <span class="theme-icon" id="theme-icon">🌙</span>
+      <div class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" title="라이트/다크 모드 전환"></div>
+      <span class="theme-icon" id="theme-icon2">☀️</span>
       <button class="btn btn-primary" onclick="openAdd()">+ 일정 추가</button>
     </div>
   </header>
@@ -745,6 +796,19 @@ function renderYMP(){ document.getElementById('ym-year-lbl').textContent=ymYear+
 function ymNavYear(d){ ymYear+=d; renderYMP(); }
 function pickYM(m){ cy=ymYear; cm=m; document.getElementById('ym-popup').classList.remove('show'); renderCal(); }
 document.addEventListener('click',e=>{ const p=document.getElementById('ym-popup'); if(p&&p.classList.contains('show')&&!p.contains(e.target)&&e.target.id!=='mlbl') p.classList.remove('show'); });
+
+// THEME
+const THEME_KEY = 'exam_cal_theme';
+function initTheme(){
+  const saved = localStorage.getItem(THEME_KEY);
+  if(saved === 'light') document.body.classList.add('light');
+}
+function toggleTheme(){
+  document.body.classList.toggle('light');
+  const isLight = document.body.classList.contains('light');
+  localStorage.setItem(THEME_KEY, isLight ? 'light' : 'dark');
+}
+initTheme();
 
 // TOAST
 let _tt;
