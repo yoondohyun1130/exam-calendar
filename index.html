@@ -696,13 +696,13 @@ async function loadEvs(){
 async function saveEvs(){
   setSync('busy','저장 중...');
   try{
-    // GET 방식으로 저장 (CORS 우회)
-    const encoded = encodeURIComponent(JSON.stringify(evs));
-    const r = await fetch(API_URL + '?action=set&events=' + encoded, {cache:'no-store'});
-    const text = await r.text();
-    let data;
-    try { data = JSON.parse(text); } catch(e) { throw new Error('JSON 오류'); }
-    if(!data.ok) throw new Error(data.error);
+    // no-cors 모드로 POST 전송 (응답 확인 불가하지만 저장은 됨)
+    await fetch(API_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: {'Content-Type':'text/plain'},
+      body: JSON.stringify({action:'set', events:evs})
+    });
     setSync('ok','저장됨 · '+new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'}));
   }catch(e){ setSync('err','저장 실패'); toast('⚠️','저장 실패'); console.error(e); }
 }
