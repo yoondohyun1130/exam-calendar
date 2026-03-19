@@ -19,12 +19,12 @@
     --text-muted: #6b6b80;
     --text-dim: #9999aa;
 
-    --c1: #4f8ef7;   /* 신청기간 */
-    --c2: #f7c44f;   /* 필기시험 */
-    --c3: #4ff79e;   /* 실기시험 */
-    --c4: #f74fa8;   /* 정유나 */
-    --c5: #1ec8c8;   /* 윤도현 */
-    --c6: #f7714f;   /* 기타 */
+    --c1: #4f8ef7;   /* 신청기간 - 파랑 */
+    --c2: #1ec8c8;   /* 필기시험 - 청록 */
+    --c3: #f472b6;   /* 실기시험 - 분홍 */
+    --c4: #fb923c;   /* 정유나 - 주황 */
+    --c5: #f7c44f;   /* 윤도현 - 노랑 */
+    --c6: #6b7280;   /* 기타 - 회색 */
 
     --radius: 10px;
     --ease: cubic-bezier(0.4,0,0.2,1);
@@ -113,12 +113,12 @@
 
   /* grid */
   .cal-wrap { padding: 0 12px 24px; overflow-x: auto; }
-  .cal { width: 100%; border-collapse: collapse; min-width: 680px; }
+  .cal { width: 100%; border-collapse: collapse; min-width: 680px; table-layout: fixed; }
   .cal thead th { padding: 7px 4px 5px; font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-muted); font-family: 'DM Mono', monospace; font-weight: 500; text-align: center; }
   .cal thead th:first-child { color: #f99; }
   .cal thead th:last-child  { color: #99c; }
 
-  .cell { vertical-align: top; padding: 3px; height: 108px; border: 1px solid var(--border); }
+  .cell { vertical-align: top; padding: 3px; height: 108px; border: 1px solid var(--border); overflow: visible; width: 14.28%; position: relative; }
   .cell.other { opacity: 0.25; }
   .cell.today { background: rgba(79,142,247,0.05); }
   .day-n { font-size: 11px; font-weight: 500; color: var(--text-dim); width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; font-family: 'DM Mono', monospace; flex-shrink: 0; }
@@ -133,11 +133,14 @@
     display: flex; align-items: center; overflow: hidden; white-space: nowrap;
     cursor: pointer; border-radius: 3px; user-select: none;
     transition: opacity 0.12s, filter 0.12s;
+    box-sizing: border-box; width: 100%;
   }
   .bar span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .bar.r-open  { border-radius: 3px 0 0 3px; margin-right: -3px; }
-  .bar.l-open  { border-radius: 0 3px 3px 0; margin-left:  -3px; padding-left: 2px; }
-  .bar.both-open { border-radius: 0; margin: 0 -3px; padding-left: 2px; }
+  /* 당일 일정: 내용 너비만큼만 표시 */
+  .bar.single-day { display: inline-flex; max-width: 100%; }
+  .bar.r-open  { border-radius: 3px 0 0 3px; margin-right: -4px; width: calc(100% + 4px); }
+  .bar.l-open  { border-radius: 0 3px 3px 0; margin-left: -4px; width: calc(100% + 4px); padding-left: 2px; }
+  .bar.both-open { border-radius: 0; margin: 0 -4px; width: calc(100% + 8px); padding-left: 2px; }
   .bar:hover { filter: brightness(1.18) !important; }
   .bar.hi { outline: 1.5px solid rgba(255,255,255,0.45); filter: brightness(1.1); }
   .bar.dim { opacity: 0.18 !important; }
@@ -290,10 +293,17 @@
       </div>
     </div>
     <div class="fg">
-      <label>날짜 범위 *</label>
+      <label id="date-lbl-w">날짜 범위 *</label>
       <div class="date-row">
         <input class="fi" id="f-start" type="date">
         <input class="fi" id="f-end"   type="date">
+      </div>
+    </div>
+    <div class="fg" id="date-fg-p" style="display:none">
+      <label>실기 신청기간 *</label>
+      <div class="date-row">
+        <input class="fi" id="f-start2" type="date">
+        <input class="fi" id="f-end2"   type="date">
       </div>
     </div>
     <div class="fg"><label>장소 / 지역</label><input class="fi" id="f-place" placeholder="예: 서울, 부산"></div>
@@ -317,12 +327,12 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 //  ★ 여기에 Apps Script 웹 앱 URL을 붙여넣으세요
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-const API_URL = 'https://script.google.com/macros/s/AKfycbyFnbScfdwwa47nPT-bpt9tlkawt3CwtQ3g-7gV3VyerxWLlCJ8-RcMJloaDktiKqtU2g/exec';
+const API_URL = 'YOUR_APPS_SCRIPT_URL_HERE';
 
 const PASS  = '1234';
 const CATS  = ['신청기간','필기시험','실기시험','정유나','윤도현','기타'];
-const CCOLORS = ['#4f8ef7','#f7c44f','#4ff79e','#f74fa8','#1ec8c8','#f7714f'];
-const CTEXTS  = ['#fff','#111','#111','#fff','#fff','#fff'];
+const CCOLORS = ['#4f8ef7','#1ec8c8','#f472b6','#fb923c','#f7c44f','#6b7280'];
+const CTEXTS  = ['#fff','#fff','#fff','#fff','#111','#fff'];
 const SUBLBL  = { w:'필기신청', p:'실기신청', b:'필기+실기신청' };
 
 let evs = [], editId = null, curSub = 'w';
@@ -332,6 +342,7 @@ const today = new Date();
 // ──── INIT ────
 (function init() {
   cy = today.getFullYear(); cm = today.getMonth();
+  renderCal(); // 먼저 빈 달력 표시
   loadEvs();
   setInterval(loadEvs, 10 * 60 * 1000); // 10분마다 자동 동기화
 })();
@@ -341,15 +352,21 @@ async function loadEvs() {
   setSync('busy','동기화 중...');
   try {
     const r = await fetch(API_URL + '?action=get', { cache: 'no-store' });
-    const data = await r.json();
+    const text = await r.text();
+    let data;
+    try { data = JSON.parse(text); } catch(je) {
+      throw new Error('서버 응답이 JSON이 아닙니다. Apps Script URL을 확인해주세요.');
+    }
     if (data.ok) {
-      evs = data.events;
+      evs = data.events || [];
       renderCal();
       setSync('ok','동기화됨 · ' + new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'}));
     } else throw new Error(data.error);
   } catch(e) {
-    setSync('err','연결 실패');
+    setSync('err','연결 실패 (새로고침 버튼을 눌러주세요)');
     console.error(e);
+    // 연결 실패해도 달력은 유지
+    renderCal();
   }
 }
 
@@ -442,7 +459,7 @@ function renderCal() {
         const ev = evs.find(e=>e.id===it.evId); if(!ev) return;
         const bar = document.createElement('div');
         const p = it.pos;
-        bar.className = 'bar' + (p==='start'?' r-open':p==='end'?' l-open':p==='middle'?' both-open':'');
+        bar.className = 'bar' + (p==='single'?' single-day':p==='start'?' r-open':p==='end'?' l-open':p==='middle'?' both-open':'');
         bar.dataset.evid = ev.id;
         bar.style.background = CCOLORS[ev.cat];
         bar.style.color = CTEXTS[ev.cat];
@@ -478,7 +495,7 @@ function buildLayout(cells) {
     let cur=new Date(ev.start+'T00:00:00');
     const end=new Date(ev.end+'T00:00:00');
     while(cur<=end){
-      const ds=cur.toISOString().slice(0,10);
+      const ds=cur.getFullYear()+'-'+String(cur.getMonth()+1).padStart(2,'0')+'-'+String(cur.getDate()).padStart(2,'0');
       if(layout[ds]!==undefined){
         const s=ev.start===ev.end, iS=ds===ev.start, iE=ds===ev.end;
         layout[ds].push({evId:ev.id, slot, pos:s?'single':iS?'start':iE?'end':'middle'});
@@ -534,10 +551,20 @@ function hideTip() {
 
 // ──── MODAL ────
 function catChange() {
-  document.getElementById('sub-fg').style.display = +document.getElementById('f-cat').value===0 ? 'block' : 'none';
+  const cat = +document.getElementById('f-cat').value;
+  document.getElementById('sub-fg').style.display = cat===0 ? 'block' : 'none';
+  updateSubUI();
 }
 function setSub(s) {
   curSub=s; ['w','p','b'].forEach(k=>document.getElementById('sb-'+k).classList.toggle('active',k===s));
+  updateSubUI();
+}
+function updateSubUI() {
+  const isBoth = curSub==='b' && +document.getElementById('f-cat').value===0;
+  document.getElementById('date-fg-p').style.display = isBoth ? 'block' : 'none';
+  const lbl = document.getElementById('date-lbl-w');
+  if(isBoth) lbl.textContent = '필기 신청기간 *';
+  else lbl.textContent = '날짜 범위 *';
 }
 function updDatalist() {
   const names=[...new Set(evs.map(e=>e.name))];
@@ -552,6 +579,7 @@ function openAdd() {
   document.getElementById('f-cat').value='0';
   document.getElementById('f-start').value=''; document.getElementById('f-end').value='';
   curSub='w'; setSub('w'); catChange(); updDatalist();
+  document.getElementById('f-start2').value=''; document.getElementById('f-end2').value='';
   document.getElementById('modal-ov').classList.add('open');
 }
 function openEdit(id) {
@@ -564,6 +592,7 @@ function openEdit(id) {
   document.getElementById('f-start').value=ev.start; document.getElementById('f-end').value=ev.end;
   document.getElementById('f-place').value=ev.place||''; document.getElementById('f-round').value=ev.round||''; document.getElementById('f-memo').value=ev.memo||'';
   curSub=ev.sub||'w'; setSub(curSub); catChange(); updDatalist();
+  if(ev.linkedId){const linked=evs.find(e=>e.id===ev.linkedId); document.getElementById('f-start2').value=linked?.start||''; document.getElementById('f-end2').value=linked?.end||'';} else {document.getElementById('f-start2').value=''; document.getElementById('f-end2').value='';}
   document.getElementById('modal-ov').classList.add('open');
 }
 function closeModal() { document.getElementById('modal-ov').classList.remove('open'); }
@@ -573,15 +602,38 @@ async function saveEv() {
   const cat=+document.getElementById('f-cat').value;
   const start=document.getElementById('f-start').value;
   const end=document.getElementById('f-end').value;
+  const start2=document.getElementById('f-start2').value;
+  const end2=document.getElementById('f-end2').value;
   const place=document.getElementById('f-place').value.trim();
   const round=document.getElementById('f-round').value.trim();
   const memo=document.getElementById('f-memo').value.trim();
   if(!name||!start||!end){toast('⚠️','시험 이름과 날짜를 입력해주세요');return;}
   if(start>end){toast('⚠️','종료일이 시작일보다 앞설 수 없어요');return;}
-  const obj={name,cat,start,end,place,round,memo};
-  if(cat===0) obj.sub=curSub;
-  if(editId!==null){const i=evs.findIndex(e=>e.id===editId);if(i!==-1)evs[i]={id:editId,...obj};}
-  else evs.push({id:Date.now(),...obj});
+  const isBoth = cat===0 && curSub==='b';
+  if(isBoth && (!start2||!end2)){toast('⚠️','실기 신청기간도 입력해주세요');return;}
+
+  if(isBoth) {
+    // 필기+실기: 두 개의 이벤트로 저장 (linkedId로 연결)
+    if(editId!==null) {
+      // 수정 시: 기존 이벤트와 연결된 이벤트 함께 업데이트
+      const existing = evs.find(e=>e.id===editId);
+      const linkedId = existing?.linkedId;
+      const baseId = Date.now();
+      evs = evs.filter(e=>e.id!==editId && e.id!==linkedId);
+      const id1=editId, id2=linkedId||baseId+1;
+      evs.push({id:id1,name,cat,sub:'w',start,end,place,round,memo,linkedId:id2});
+      evs.push({id:id2,name,cat,sub:'p',start:start2,end:end2,place,round,memo,linkedId:id1});
+    } else {
+      const id1=Date.now(), id2=id1+1;
+      evs.push({id:id1,name,cat,sub:'w',start,end,place,round,memo,linkedId:id2});
+      evs.push({id:id2,name,cat,sub:'p',start:start2,end:end2,place,round,memo,linkedId:id1});
+    }
+  } else {
+    const obj={name,cat,start,end,place,round,memo};
+    if(cat===0) obj.sub=curSub;
+    if(editId!==null){const i=evs.findIndex(e=>e.id===editId);if(i!==-1)evs[i]={id:editId,...obj};}
+    else evs.push({id:Date.now(),...obj});
+  }
   closeModal(); renderCal();
   await saveEvs();
   toast('✓', editId?'수정되었습니다':'일정이 추가되었습니다');
@@ -589,7 +641,9 @@ async function saveEv() {
 async function delEv() {
   if(editId===null) return;
   if(!confirm('이 일정을 삭제할까요?')) return;
-  evs=evs.filter(e=>e.id!==editId);
+  const ev = evs.find(e=>e.id===editId);
+  const linkedId = ev?.linkedId;
+  evs=evs.filter(e=>e.id!==editId && e.id!==linkedId);
   closeModal(); renderCal();
   await saveEvs(); toast('🗑','삭제되었습니다');
 }
