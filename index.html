@@ -24,7 +24,8 @@
     --c3: #f472b6;   /* 실기시험 - 분홍 */
     --c4: #fb923c;   /* 정유나 - 주황 */
     --c5: #f7c44f;   /* 윤도현 - 노랑 */
-    --c6: #6b7280;   /* 기타 - 회색 */
+    --c6: #a855f7;   /* 결과발표 - 보라 */
+    --c7: #6b7280;   /* 기타 - 회색 */
 
     --radius: 10px;
     --ease: cubic-bezier(0.4,0,0.2,1);
@@ -205,6 +206,55 @@
   }
   #toast.show { transform: translateX(-50%) translateY(0); }
 
+  /* ───── TABS ───── */
+  .tab-bar { display: flex; gap: 4px; padding: 10px 24px 0; border-bottom: 1px solid var(--border); background: var(--surface); }
+  .tab-btn { padding: 8px 18px; font-size: 13px; font-weight: 500; cursor: pointer; border: none; background: transparent; color: var(--text-muted); border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.15s; font-family: 'Noto Sans KR', sans-serif; }
+  .tab-btn.active { color: var(--c1); border-bottom-color: var(--c1); }
+  .tab-btn:hover { color: var(--text); }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* ───── LIST VIEW ───── */
+  .list-wrap { padding: 20px 24px; max-width: 860px; margin: 0 auto; }
+  .list-month-hd {
+    font-size: 12px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--text-muted); font-family: 'DM Mono', monospace;
+    padding: 18px 0 8px; border-bottom: 1px solid var(--border); margin-bottom: 10px;
+  }
+  .list-item {
+    display: flex; align-items: stretch; gap: 0;
+    background: var(--surface2); border-radius: 10px; margin-bottom: 8px;
+    cursor: pointer; transition: background 0.12s; overflow: hidden;
+    border: 1px solid var(--border);
+  }
+  .list-item:hover { background: var(--border); }
+  .list-color-bar { width: 4px; flex-shrink: 0; }
+  .list-body { padding: 12px 16px; flex: 1; }
+  .list-name { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+  .list-meta { display: flex; flex-wrap: wrap; gap: 8px; font-size: 12px; color: var(--text-muted); }
+  .list-cat-badge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 100px; font-size: 11px; font-weight: 500; }
+  .list-empty { text-align: center; padding: 60px 0; color: var(--text-muted); font-size: 14px; }
+
+  /* ───── YEAR/MONTH PICKER ───── */
+  .ym-popup {
+    position: absolute; z-index: 500;
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 12px; padding: 16px; width: 260px;
+    box-shadow: 0 8px 28px rgba(0,0,0,0.5); display: none;
+  }
+  .ym-popup.show { display: block; }
+  .ym-year-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .ym-year-nav { background: var(--surface); border: 1px solid var(--border); color: var(--text); width: 28px; height: 28px; border-radius: 6px; cursor: pointer; font-size: 14px; display: flex; align-items: center; justify-content: center; }
+  .ym-year-nav:hover { background: var(--border); }
+  .ym-year-lbl { font-size: 15px; font-weight: 700; font-family: 'DM Mono', monospace; }
+  .ym-months { display: grid; grid-template-columns: repeat(4,1fr); gap: 6px; }
+  .ym-month { padding: 7px 0; border-radius: 7px; border: 1px solid transparent; background: var(--surface); color: var(--text-dim); font-size: 13px; cursor: pointer; text-align: center; transition: all 0.12s; font-family: 'Noto Sans KR', sans-serif; }
+  .ym-month:hover { background: var(--border); color: var(--text); }
+  .ym-month.active { border-color: var(--c1); background: rgba(79,142,247,0.12); color: var(--c1); font-weight: 600; }
+  .month-lbl { cursor: pointer; }
+  .month-lbl:hover { color: var(--c1); }
+  .cal-nav-wrap { position: relative; display: flex; align-items: center; justify-content: center; gap: 14px; padding: 18px 24px 8px; }
+
   ::-webkit-scrollbar { width: 5px; height: 5px; }
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
@@ -241,29 +291,53 @@
     </div>
   </header>
 
+  <!-- 탭 바 -->
+  <div class="tab-bar">
+    <button class="tab-btn active" onclick="switchTab('cal')">📅 달력</button>
+    <button class="tab-btn" onclick="switchTab('list')">📋 목록</button>
+  </div>
+
+  <!-- 범례 -->
   <div class="legend">
     <div class="legend-item"><div class="legend-dot" style="background:var(--c1)"></div>신청기간</div>
     <div class="legend-item"><div class="legend-dot" style="background:var(--c2)"></div>필기시험</div>
     <div class="legend-item"><div class="legend-dot" style="background:var(--c3)"></div>실기시험</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--c6)"></div>결과발표</div>
     <div class="legend-item"><div class="legend-dot" style="background:var(--c4)"></div>정유나</div>
     <div class="legend-item"><div class="legend-dot" style="background:var(--c5)"></div>윤도현</div>
-    <div class="legend-item"><div class="legend-dot" style="background:var(--c6)"></div>기타</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--c7)"></div>기타</div>
   </div>
 
-  <div class="cal-nav">
-    <button class="nav-btn" onclick="nav(-1)">‹</button>
-    <div class="month-lbl" id="mlbl"></div>
-    <button class="nav-btn" onclick="nav(1)">›</button>
-    <button class="btn btn-ghost" style="font-size:12px;padding:6px 12px;" onclick="goToday()">오늘</button>
+  <!-- 달력 탭 -->
+  <div class="tab-content active" id="tab-cal">
+    <div class="cal-nav-wrap">
+      <button class="nav-btn" onclick="nav(-1)">‹</button>
+      <div class="month-lbl" id="mlbl" onclick="toggleYMPicker()"></div>
+      <button class="nav-btn" onclick="nav(1)">›</button>
+      <button class="btn btn-ghost" style="font-size:12px;padding:6px 12px;" onclick="goToday()">오늘</button>
+      <!-- 년/월 선택 팝업 -->
+      <div class="ym-popup" id="ym-popup">
+        <div class="ym-year-row">
+          <button class="ym-year-nav" onclick="ymNavYear(-1)">‹</button>
+          <div class="ym-year-lbl" id="ym-year-lbl"></div>
+          <button class="ym-year-nav" onclick="ymNavYear(1)">›</button>
+        </div>
+        <div class="ym-months" id="ym-months"></div>
+      </div>
+    </div>
+    <div class="cal-wrap">
+      <table class="cal">
+        <thead><tr>
+          <th>일</th><th>월</th><th>화</th><th>수</th><th>목</th><th>금</th><th>토</th>
+        </tr></thead>
+        <tbody id="cbody"></tbody>
+      </table>
+    </div>
   </div>
 
-  <div class="cal-wrap">
-    <table class="cal">
-      <thead><tr>
-        <th>일</th><th>월</th><th>화</th><th>수</th><th>목</th><th>금</th><th>토</th>
-      </tr></thead>
-      <tbody id="cbody"></tbody>
-    </table>
+  <!-- 목록 탭 -->
+  <div class="tab-content" id="tab-list">
+    <div class="list-wrap" id="list-wrap"></div>
   </div>
 </div>
 
@@ -280,8 +354,9 @@
       <label>종류 *</label>
       <select class="fs" id="f-cat" onchange="catChange()">
         <option value="0">신청기간</option><option value="1">필기시험</option>
-        <option value="2">실기시험</option><option value="3">정유나</option>
-        <option value="4">윤도현</option><option value="5">기타</option>
+        <option value="2">실기시험</option><option value="5">결과발표</option>
+        <option value="3">정유나</option><option value="4">윤도현</option>
+        <option value="6">기타</option>
       </select>
     </div>
     <div class="fg" id="sub-fg" style="display:none">
@@ -330,9 +405,9 @@
 const API_URL = 'YOUR_APPS_SCRIPT_URL_HERE';
 
 const PASS  = '1234';
-const CATS  = ['신청기간','필기시험','실기시험','정유나','윤도현','기타'];
-const CCOLORS = ['#4f8ef7','#1ec8c8','#f472b6','#fb923c','#f7c44f','#6b7280'];
-const CTEXTS  = ['#fff','#fff','#fff','#fff','#111','#fff'];
+const CATS  = ['신청기간','필기시험','실기시험','정유나','윤도현','결과발표','기타'];
+const CCOLORS = ['#4f8ef7','#1ec8c8','#f472b6','#fb923c','#f7c44f','#a855f7','#6b7280'];
+const CTEXTS  = ['#fff','#fff','#fff','#fff','#111','#fff','#fff'];
 const SUBLBL  = { w:'필기신청', p:'실기신청', b:'필기+실기신청' };
 
 let evs = [], editId = null, curSub = 'w';
@@ -359,7 +434,7 @@ async function loadEvs() {
     }
     if (data.ok) {
       evs = data.events || [];
-      renderCal();
+      renderCal(); if(curTab==='list') renderList();
       setSync('ok','동기화됨 · ' + new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'}));
     } else throw new Error(data.error);
   } catch(e) {
@@ -634,7 +709,7 @@ async function saveEv() {
     if(editId!==null){const i=evs.findIndex(e=>e.id===editId);if(i!==-1)evs[i]={id:editId,...obj};}
     else evs.push({id:Date.now(),...obj});
   }
-  closeModal(); renderCal();
+  closeModal(); renderCal(); if(curTab==='list') renderList();
   await saveEvs();
   toast('✓', editId?'수정되었습니다':'일정이 추가되었습니다');
 }
@@ -644,7 +719,7 @@ async function delEv() {
   const ev = evs.find(e=>e.id===editId);
   const linkedId = ev?.linkedId;
   evs=evs.filter(e=>e.id!==editId && e.id!==linkedId);
-  closeModal(); renderCal();
+  closeModal(); renderCal(); if(curTab==='list') renderList();
   await saveEvs(); toast('🗑','삭제되었습니다');
 }
 
@@ -653,6 +728,88 @@ function nav(d) {
   cm+=d; if(cm>11){cm=0;cy++;} if(cm<0){cm=11;cy--;} renderCal();
 }
 function goToday(){cy=today.getFullYear();cm=today.getMonth();renderCal();}
+
+// ──── TABS ────
+let curTab = 'cal';
+function switchTab(t) {
+  curTab = t;
+  document.querySelectorAll('.tab-btn').forEach((b,i)=>b.classList.toggle('active', ['cal','list'][i]===t));
+  document.getElementById('tab-cal').classList.toggle('active', t==='cal');
+  document.getElementById('tab-list').classList.toggle('active', t==='list');
+  if(t==='list') renderList();
+}
+
+// ──── YEAR/MONTH PICKER ────
+let ymYear = new Date().getFullYear();
+function toggleYMPicker() {
+  const p = document.getElementById('ym-popup');
+  ymYear = cy;
+  p.classList.toggle('show');
+  if(p.classList.contains('show')) renderYMPicker();
+}
+function renderYMPicker() {
+  document.getElementById('ym-year-lbl').textContent = ymYear + '년';
+  const MN = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+  const wrap = document.getElementById('ym-months');
+  wrap.innerHTML = MN.map((m,i)=>
+    `<div class="ym-month${ymYear===cy&&i===cm?' active':''}" onclick="pickYM(${i})">${m}</div>`
+  ).join('');
+}
+function ymNavYear(d) { ymYear+=d; renderYMPicker(); }
+function pickYM(m) {
+  cy=ymYear; cm=m;
+  document.getElementById('ym-popup').classList.remove('show');
+  renderCal();
+}
+document.addEventListener('click', e=>{
+  const p=document.getElementById('ym-popup');
+  if(p&&p.classList.contains('show')&&!p.contains(e.target)&&e.target.id!=='mlbl')
+    p.classList.remove('show');
+});
+
+// ──── LIST VIEW ────
+function renderList() {
+  const wrap = document.getElementById('list-wrap');
+  if(!evs.length){ wrap.innerHTML='<div class="list-empty">등록된 일정이 없어요</div>'; return; }
+
+  // 날짜순 정렬
+  const sorted = [...evs].sort((a,b)=>a.start.localeCompare(b.start));
+
+  // 월별 그룹핑
+  const groups = {};
+  sorted.forEach(ev => {
+    const d = new Date(ev.start+'T00:00:00');
+    const key = d.getFullYear()+'년 '+( d.getMonth()+1)+'월';
+    if(!groups[key]) groups[key]=[];
+    groups[key].push(ev);
+  });
+
+  const MN_EN = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+  let html = '';
+  Object.entries(groups).forEach(([key, items])=>{
+    const mo = parseInt(key.match(/(\d+)월/)[1])-1;
+    html += `<div class="list-month-hd">${key} &nbsp;·&nbsp; ${MN_EN[mo]}</div>`;
+    items.forEach(ev=>{
+      const catLabel = ev.cat===0&&ev.sub ? SUBLBL[ev.sub] : CATS[ev.cat]||'기타';
+      const col = CCOLORS[ev.cat]||'#6b7280';
+      const txt = CTEXTS[ev.cat]||'#fff';
+      const dateStr = ev.start===ev.end ? ev.start : ev.start+' ~ '+ev.end;
+      html += `<div class="list-item" onclick="openEdit(${ev.id})">
+        <div class="list-color-bar" style="background:${col}"></div>
+        <div class="list-body">
+          <div class="list-name">${ev.name}${ev.round?' <span style="font-size:11px;font-weight:400;color:var(--text-muted)">'+ev.round+'</span>':''}</div>
+          <div class="list-meta">
+            <span class="list-cat-badge" style="background:${col}22;color:${col}">${catLabel}</span>
+            <span>📅 ${dateStr}</span>
+            ${ev.place?'<span>📍 '+ev.place+'</span>':''}
+            ${ev.memo?'<span>💬 '+ev.memo+'</span>':''}
+          </div>
+        </div>
+      </div>`;
+    });
+  });
+  wrap.innerHTML = html;
+}
 
 // ──── TOAST ────
 let _tt;
