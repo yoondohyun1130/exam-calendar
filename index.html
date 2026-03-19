@@ -747,9 +747,21 @@ function renderCal(){
       const bd=document.createElement('div'); bd.className='bars';
       const items=(layout[ds]||[]).slice().sort((a,b)=>a.slot-b.slot);
       const MAX=4; const seen=new Set(); let shown=0;
-      items.forEach(it=>{
-        if(seen.has(it.slot)) return; seen.add(it.slot); if(shown>=MAX) return; shown++;
-        const ev=evs.find(e=>e.id===it.evId); if(!ev) return;
+      // 슬롯 번호 기준으로 빈 슬롯도 빈 행으로 채워서 위치 고정
+      const maxSlot = items.length ? Math.min(items[items.length-1].slot, MAX-1) : -1;
+      let itemIdx=0;
+      for(let rowSlot=0; rowSlot<=maxSlot && shown<MAX; rowSlot++){
+        const it = items[itemIdx];
+        if(!it || it.slot !== rowSlot){
+          // 빈 슬롯 → 투명 spacer
+          const spacer=document.createElement('div');
+          spacer.style.cssText='height:15px;flex-shrink:0;';
+          bd.appendChild(spacer); shown++;
+          continue;
+        }
+        itemIdx++;
+        if(seen.has(it.slot)) continue; seen.add(it.slot); shown++;
+        const ev=evs.find(e=>e.id===it.evId); if(!ev){ shown--; continue; }
         const bar=document.createElement('div');
         const p=it.pos;
         bar.className='bar'+(p==='single'?' single-day':p==='start'?' r-open':p==='end'?' l-open':p==='middle'?' both-open':'');
@@ -762,7 +774,7 @@ function renderCal(){
         bar.addEventListener('mouseleave',hideTip);
         bar.addEventListener('click',()=>openEdit(ev.id));
         bd.appendChild(bar);
-      });
+      }
       const extra=new Set(items.map(i=>i.slot)).size-MAX;
       if(extra>0){ const mb=document.createElement('div'); mb.className='more'; mb.textContent='+'+extra; bd.appendChild(mb); }
       td.appendChild(bd); tr.appendChild(td);
@@ -773,24 +785,44 @@ function renderCal(){
 function buildLayout(cells){
   const layout={}; cells.forEach(c=>layout[fmtD(c.y,c.m,c.d)]=[]);
   const sorted=[...evs].sort((a,b)=>a.start.localeCompare(b.start));
-  // 이벤트별 고정 슬롯 배정 (같은 이벤트는 항상 같은 슬롯)
+
+  // 각 이벤트에 고정 슬롯 배정
+  // 슬롯별로 "이 슬롯이 언제까지 사용 중인지" 추적
   const evSlot={};
+  // slotEnd[slot] = 해당 슬롯의 마지막 사용 날짜
   const slotEnd=[];
+
   sorted.forEach(ev=>{
+    // 이 이벤트와 겹치지 않는 가장 작은 슬롯 찾기
     let slot=0;
-    while(slotEnd[slot]&&slotEnd[slot]>=ev.start) slot++;
-    slotEnd[slot]=ev.end;
-    evSlot[ev.id]=slot;
+    while(slotEnd[slot] && slotEnd[slot] >= ev.start) slot++;
+    slotEnd[slot] = ev.end;
+    evSlot[ev.id] = slot;
   });
+
+  // 각 날짜에 이벤트 배치 (슬롯 고정)
   sorted.forEach(ev=>{
-    const slot=evSlot[ev.id];
-    let cur=new Date(ev.start+'T00:00:00'); const end=new Date(ev.end+'T00:00:00');
+    const slot = evSlot[ev.id];
+    let cur = new Date(ev.start+'T00:00:00');
+    const end = new Date(ev.end+'T00:00:00');
     while(cur<=end){
-      const ds=cur.getFullYear()+'-'+String(cur.getMonth()+1).padStart(2,'0')+'-'+String(cur.getDate()).padStart(2,'0');
-      if(layout[ds]!==undefined){ const s=ev.start===ev.end,iS=ds===ev.start,iE=ds===ev.end; layout[ds].push({evId:ev.id,slot,pos:s?'single':iS?'start':iE?'end':'middle'}); }
+      const ds = cur.getFullYear()+'-'+String(cur.getMonth()+1).padStart(2,'0')+'-'+String(cur.getDate()).padStart(2,'0');
+      if(layout[ds]!==undefined){
+        const s=ev.start===ev.end, iS=ds===ev.start, iE=ds===ev.end;
+        layout[ds].push({evId:ev.id, slot, pos:s?'single':iS?'start':iE?'end':'middle'});
+      }
       cur.setDate(cur.getDate()+1);
     }
   });
+
+  // 각 날짜의 이벤트를 슬롯 순서대로 정렬하고
+  // 빈 슬롯이 있어도 시각적 위치(row)를 슬롯 번호 기준으로 고정
+  Object.keys(layout).forEach(ds=>{
+    layout[ds].sort((a,b)=>a.slot-b.slot);
+    // 슬롯 번호 그대로 row index로 사용 (빈 슬롯은 빈 공간으로)
+    layout[ds] = layout[ds].map(item=>({...item, row: item.slot}));
+  });
+
   return layout;
 }
 function fmtD(y,m,d){ return y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0'); }
