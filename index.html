@@ -472,6 +472,89 @@
   ::-webkit-scrollbar { width: 4px; height: 4px; }
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb { background: var(--surface3); border-radius: 4px; }
+
+  /* ── MOBILE RESPONSIVE ── */
+  @media (max-width: 768px) {
+    body { overflow: auto; height: auto; }
+    #app { height: auto; min-height: 100vh; overflow: auto; }
+
+    .hdr {
+      padding: 0 12px; height: auto; flex-wrap: wrap;
+      gap: 8px; padding: 10px 12px;
+    }
+    .hdr-left { flex-wrap: wrap; gap: 8px; width: 100%; }
+    .hdr-logo { font-size: 14px; }
+    .legend { gap: 6px; }
+    .legend-item { font-size: 10px; }
+    .hdr-right { width: 100%; justify-content: flex-end; gap: 6px; }
+    .btn { font-size: 11px; padding: 6px 10px; }
+    .btn-primary { font-size: 12px; }
+    .sync-pill { font-size: 9px; padding: 3px 8px; }
+    .theme-toggle { width: 30px; height: 17px; }
+    .theme-toggle::after { width: 11px; height: 11px; }
+    body.light .theme-toggle::after { transform: translateX(13px); }
+    .theme-icon { font-size: 11px; }
+
+    .main-layout { flex-direction: column; overflow: visible; }
+
+    /* 달력 패널 */
+    .cal-panel {
+      border-right: none;
+      border-bottom: 1px solid var(--border);
+      overflow: visible;
+      flex: none;
+    }
+    .cal-wrap { overflow-x: auto; padding: 0 6px 8px; }
+    .cal { min-width: 340px; }
+    .cal thead th { font-size: 8px; letter-spacing: 1px; padding: 4px 2px; }
+    .cell { height: 72px; padding: 2px; }
+    .day-n { font-size: 9px; width: 18px; height: 18px; }
+    .bar { height: 13px; font-size: 8px; padding: 0 3px; }
+    .more { font-size: 7px; }
+    .cal-nav-wrap { padding: 10px 12px 6px; gap: 8px; }
+    .month-lbl { font-size: 15px; min-width: 110px; }
+    .nav-btn { width: 26px; height: 26px; font-size: 13px; }
+
+    /* 우측 패널 */
+    .right-combined {
+      width: 100%;
+      flex-direction: row;
+      height: 280px;
+      border-top: 1px solid var(--border);
+    }
+    .todo-section {
+      flex: 1; border-bottom: none;
+      border-right: 1px solid var(--border);
+      display: flex; flex-direction: column;
+    }
+    .todo-list { max-height: 120px; }
+    .memo-section { flex: 1; display: flex; flex-direction: column; }
+    .memo-area { min-height: 80px; font-size: 12px; padding: 10px 12px; }
+    .memo-footer { padding: 6px 12px; }
+    .panel-hd { padding: 9px 12px 7px; }
+    .panel-title { font-size: 10px; }
+    .panel-icon { width: 20px; height: 20px; font-size: 11px; }
+    .todo-input-row { padding: 5px 8px 6px; gap: 5px; }
+    .todo-input { font-size: 11px; padding: 5px 8px; }
+    .todo-submit { font-size: 10px; padding: 5px 8px; }
+
+    /* 모달 */
+    .modal { padding: 20px 16px; border-radius: 14px; }
+    .modal-ttl { font-size: 15px; }
+    .fi, .fs { font-size: 12px; padding: 8px 10px; }
+    .fg label { font-size: 9px; }
+
+    /* ym picker */
+    .ym-popup { width: 220px; padding: 12px; }
+    .ym-month { font-size: 11px; padding: 5px 0; }
+  }
+
+  @media (max-width: 480px) {
+    .right-combined { flex-direction: column; height: auto; }
+    .todo-section { border-right: none; border-bottom: 1px solid var(--border); }
+    .todo-list { max-height: 100px; }
+    .memo-area { min-height: 100px; }
+  }
 </style>
 </head>
 <body>
