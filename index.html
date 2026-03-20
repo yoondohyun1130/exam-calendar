@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>시험 일정 공유 달력</title>
+<title>일정 달력</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -248,7 +248,7 @@
   }
 
   /* CALENDAR GRID */
-  .cal-wrap { flex: 1; overflow: auto; padding: 0 10px 10px; }
+  .cal-wrap { flex: 1; overflow: auto; padding: 0 10px 10px; min-height: 0; }
   .cal { width: 100%; border-collapse: collapse; table-layout: fixed; }
   .cal thead th {
     padding: 4px 2px 6px; font-size: 9px; letter-spacing: 2px;
@@ -562,7 +562,7 @@
 <!-- LOCK -->
 <div id="lock">
   <div class="lock-badge">Exam Planner · 공유 스터디</div>
-  <div class="lock-title">시험 일정 달력</div>
+  <div class="lock-title">일정 달력</div>
   <div class="lock-sub">비밀번호를 입력하면 일정을 추가·수정할 수 있어요.<br>변경사항은 10분마다 자동 동기화됩니다.</div>
   <div id="pin-dots">
     <div class="pin-dot" id="d0"></div><div class="pin-dot" id="d1"></div>
@@ -581,7 +581,7 @@
 <div id="app">
   <header class="hdr">
     <div class="hdr-left">
-      <div class="hdr-logo">📅 시험 일정</div>
+      <div class="hdr-logo">📅 일정 달력</div>
       <div class="legend">
         <div class="legend-item"><div class="legend-dot" style="background:var(--c1)"></div>신청기간</div>
         <div class="legend-item"><div class="legend-dot" style="background:var(--c2)"></div>필기시험</div>
@@ -630,6 +630,7 @@
           <tbody id="cbody"></tbody>
         </table>
       </div>
+
     </div>
 
     <!-- RIGHT COMBINED PANEL -->
@@ -855,7 +856,7 @@ function renderCal(){
         bar.className='bar'+(p==='single'?' single-day':p==='start'?' r-open':p==='end'?' l-open':p==='middle'?' both-open':'');
         bar.dataset.evid=ev.id; bar.style.background=CCOLORS[ev.cat]||'#607080'; bar.style.color=CTEXTS[ev.cat]||'#fff';
         const lbl=document.createElement('span');
-        if(p==='start'||p==='single'){ const cl=ev.cat===0&&ev.sub?SUBLBL[ev.sub]:CATS[ev.cat]||'기타'; lbl.textContent=cl+' · '+ev.name; }
+        if(p==='start'||p==='single'){ lbl.textContent=ev.name; }
         bar.appendChild(lbl);
         bar.addEventListener('mouseenter',e=>showTip(e,ev.id));
         bar.addEventListener('mousemove',e=>moveTip(e));
@@ -881,9 +882,9 @@ function buildLayout(cells){
   const slotEnd=[];
 
   sorted.forEach(ev=>{
-    // 이 이벤트와 겹치지 않는 가장 작은 슬롯 찾기
     let slot=0;
-    while(slotEnd[slot] && slotEnd[slot] >= ev.start) slot++;
+    // 날짜가 실제로 겹치는 경우에만 다른 슬롯 배정
+    while(slotEnd[slot] && slotEnd[slot] > ev.start) slot++;
     slotEnd[slot] = ev.end;
     evSlot[ev.id] = slot;
   });
