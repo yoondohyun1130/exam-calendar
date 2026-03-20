@@ -772,7 +772,12 @@ async function loadEvs(){
     const r=await fetch(API_URL+'?action=get',{cache:'no-store'});
     const text=await r.text(); let data;
     try{ data=JSON.parse(text); }catch(e){ throw new Error('JSON 오류'); }
-    if(data.ok){ evs=data.events||[]; renderCal(); setSync('ok','동기화됨 · '+new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'})); }
+    if(data.ok){
+      evs=data.events||[];
+      if(data.todos){ todos=data.todos; renderTodos(); }
+      renderCal();
+      setSync('ok','동기화됨 · '+new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'}));
+    }
     else throw new Error(data.error);
   }catch(e){ setSync('err','연결 실패'); renderCal(); }
 }
@@ -784,7 +789,7 @@ async function saveEvs(){
       method: 'POST',
       mode: 'no-cors',
       headers: {'Content-Type':'text/plain'},
-      body: JSON.stringify({action:'set', events:evs})
+      body: JSON.stringify({action:'set', events:evs, todos:todos})
     });
     setSync('ok','저장됨 · '+new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'}));
   }catch(e){ setSync('err','저장 실패'); toast('⚠️','저장 실패'); console.error(e); }
@@ -913,13 +918,21 @@ function fmtD(y,m,d){ return y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).pad
 // TODO LIST
 
 function initTodo(){
-  const saved = localStorage.getItem(TODO_KEY);
-  if(saved) todos = JSON.parse(saved);
+  // 서버에서 불러온 데이터 없으면 로컬 fallback
+  if(!todos.length){
+    try{
+      const saved = localStorage.getItem(TODO_KEY);
+      if(saved) todos = JSON.parse(saved);
+    }catch(e){}
+  }
   renderTodos();
 }
 
-function saveTodos(){
-  localStorage.setItem(TODO_KEY, JSON.stringify(todos));
+async function saveTodos(){
+  // 로컬 백업
+  try{ localStorage.setItem(TODO_KEY, JSON.stringify(todos)); }catch(e){}
+  // 서버 저장 (일정 데이터와 함께)
+  await saveEvs();
 }
 
 function renderTodos(){
@@ -941,18 +954,20 @@ function renderTodos(){
   `).join('');
 }
 
-function addTodo(){
+async function addTodo(){
   const input = document.getElementById('todo-input');
   const text = input.value.trim();
   if(!text) return;
   todos.push({ text, done: false });
   input.value = '';
-  saveTodos(); renderTodos();
+  renderTodos();
+  await saveTodos();
 }
 
-function toggleTodo(i){
+async function toggleTodo(i){
   todos[i].done = !todos[i].done;
-  saveTodos(); renderTodos();
+  renderTodos();
+  await saveTodos();
 }
 
 function editTodo(i, val){
@@ -960,9 +975,10 @@ function editTodo(i, val){
   saveTodos();
 }
 
-function deleteTodo(i){
+async function deleteTodo(i){
   todos.splice(i, 1);
-  saveTodos(); renderTodos();
+  renderTodos();
+  await saveTodos();
 }
 
 function focusTodoInput(){
